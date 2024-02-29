@@ -6,10 +6,10 @@ const NotesSchema: Schema = new mongoose.Schema(
       type: String,
       requried: true,
     },
-    notesCode: {
+    noteCode: {
       type: String,
     },
-    notesDescription: {
+    noteDescription: {
       type: String,
     },
     imageLink: {

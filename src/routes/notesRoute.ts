@@ -4,10 +4,6 @@ const router = express.Router();
 // Importing DB-Models
 import NotesModel from "../model/NotesModel";
 
-router.get("/getAllNotes", async (req: Request, res: Response) => {
-  res.send("hello");
-});
-
 // importing controller functions
 import {
   getAllNotes,
