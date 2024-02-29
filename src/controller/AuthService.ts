@@ -1,5 +1,7 @@
 import { Response, Request } from "express";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+
 import {
   passwordValidation,
   jwtGenerateToken,
@@ -11,7 +13,7 @@ import AuthModel from "../model/AuthModel";
 
 export const Register = async (req: Request, res: Response) => {
   const { email, password, name } = req.body;
-  const alreadyExists = await AuthModel.find({ email });
+  const alreadyExists = await AuthModel.findOne({ email });
   if (alreadyExists) {
     res.status(503).json({ message: "User alreadyExists!" });
     return;
@@ -40,7 +42,6 @@ export const Login = async (req: Request, res: Response) => {
   if (checkPassword) {
     const payload = {
       id: alreadyExists?._id,
-      createdAt: alreadyExists?.createdAt,
     };
     const jwtToken = await jwtGenerateToken(payload);
     if (jwtToken === "") {
@@ -50,6 +51,7 @@ export const Login = async (req: Request, res: Response) => {
       res.cookie("token", jwtToken);
       res.status(200).json({
         message: "User Logged in!..",
+        id: alreadyExists?._id,
         email: alreadyExists?.email,
         name: alreadyExists?.name,
         createdAt: alreadyExists?.createdAt,
@@ -64,14 +66,16 @@ export const Login = async (req: Request, res: Response) => {
 
 export const getProfile = async (req: Request, res: Response) => {
   const token = req.cookies.token;
-  const userExists = await AuthModel.findOne();
-  if (userExists) {
-    const profileDetails = {
-      email: userExists.email,
-      name: userExists.name,
-      createdAt: userExists.createdAt,
-    };
-    res.send(profileDetails);
-    return;
+  const jwtExtractedid = (await jwt.verify(
+    token,
+    process.env.TOKEN_VALIDATION_KEY || "",
+  )) as any;
+
+  console.log(jwtExtractedid);
+  const userDetail = await AuthModel.findById(jwtExtractedid.id);
+  if (userDetail) {
+    res.status(200).send(userDetail);
+  } else {
+    res.status(500).json({ message: "error while fetching user" });
   }
 };
