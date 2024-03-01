@@ -1,6 +1,6 @@
 import { Response, Request } from "express";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 import {
   passwordValidation,
@@ -48,7 +48,10 @@ export const Login = async (req: Request, res: Response) => {
       res.status(500).json({ message: "error while logging in.." });
       return;
     } else {
-      res.cookie("token", jwtToken);
+      res.cookie("accessToken", jwtToken, {
+        maxAge: 60 * 60 * 24 * 90 * 1000,
+        httpOnly: true,
+      });
       res.status(200).json({
         message: "User Logged in!..",
         id: alreadyExists?._id,
@@ -65,17 +68,17 @@ export const Login = async (req: Request, res: Response) => {
 };
 
 export const getProfile = async (req: Request, res: Response) => {
-  const token = req.cookies.token;
-  const jwtExtractedid = (await jwt.verify(
-    token,
-    process.env.TOKEN_VALIDATION_KEY || "",
-  )) as any;
+  // user Authentication
+  const jwtAccessToken = req.cookies["accessToken"];
+  const secret = process.env.TOKEN_VALIDATION_KEY || "";
 
-  console.log(jwtExtractedid);
-  const userDetail = await AuthModel.findById(jwtExtractedid.id);
-  if (userDetail) {
-    res.status(200).send(userDetail);
-  } else {
-    res.status(500).json({ message: "error while fetching user" });
-  }
+  const validUser = jwt.verify(jwtAccessToken, secret) as JwtPayload;
+
+  if (!validUser)
+    return res.status(400).json({ error: "User is not authenticated!" });
+  // user Authentication
+  const userProfileDetail = await AuthModel.findById(validUser.id);
+
+  console.log(userProfileDetail);
+  res.send(userProfileDetail);
 };

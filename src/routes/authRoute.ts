@@ -3,6 +3,7 @@ const router = experss.Router();
 
 // importing controllers
 import { Register, Login, getProfile } from "../controller/AuthService";
+import { jwtValidateToken } from "../config/Authentication";
 
 // using routes
 router.post("/register", Register);

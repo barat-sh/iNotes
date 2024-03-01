@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import { Response, Request, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
 export const passwordHash = async (password: string) => {
@@ -33,4 +34,23 @@ export const jwtGenerateToken = async (payload: any) => {
   return jwt.sign(payload, secret);
 };
 
-export const jwtValidateToken = () => {};
+export const jwtValidateToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const secret: string = process.env.TOKEN_VALIDATION_KEY || "";
+  const jwtAccessToken = req.cookies["accessToken"];
+  if (!jwtAccessToken)
+    return res.status(400).json({ error: "user not authenticated!" });
+  try {
+    const validToken = jwt.verify(jwtAccessToken, secret);
+    if (validToken) {
+      console.log(validToken);
+      next();
+      return;
+    }
+  } catch (err) {
+    return res.status(400).json({ error: "user not authenticated!" });
+  }
+};
