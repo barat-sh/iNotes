@@ -8,5 +8,5 @@ import { jwtValidateToken } from "../config/Authentication";
 // using routes
 router.post("/register", Register);
 router.post("/login", Login);
-router.get("/getProfile", jwtValidateToken, getProfile);
+router.get("/getProfile", getProfile);
 export default router;
