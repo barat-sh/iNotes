@@ -35,35 +35,35 @@ export const Login = async (req: Request, res: Response) => {
   const alreadyExists = await AuthModel.findOne({
     email: email.toLowerCase(),
   }).select("+password");
-  const checkPassword = await passwordValidation(
-    password,
-    alreadyExists?.password || "",
-  );
-  if (checkPassword) {
-    const payload = {
-      id: alreadyExists?._id,
-    };
-    const jwtToken = await jwtGenerateToken(payload);
-    if (jwtToken === "") {
-      res.status(500).json({ message: "error while logging in.." });
-      return;
-    } else {
-      res.cookie("accessToken", jwtToken, {
-        maxAge: 60 * 60 * 24 * 90 * 1000,
-        httpOnly: true,
-      });
-      res.status(200).json({
-        message: "User Logged in!..",
+  if(alreadyExists){
+    const checkPassword = await passwordValidation(
+      password,
+      alreadyExists?.password || "",
+    );
+    if (checkPassword) {
+      const payload = {
         id: alreadyExists?._id,
-        email: alreadyExists?.email,
-        name: alreadyExists?.name,
-        createdAt: alreadyExists?.createdAt,
-      });
+      };
+      const jwtToken = await jwtGenerateToken(payload);
+      if (jwtToken === "") {
+        res.status(500).json({ message: "error while logging in.." });
+        return;
+      } else {
+        res.cookie("accessToken", jwtToken, {
+          maxAge: 60 * 60 * 24 * 90 * 1000,
+          httpOnly: true,
+        });
+        res.status(200).json({
+          message: "User Logged in!..",
+        });
+        return;
+      }
+    } else {
+      res.status(500).json({ message: "Incorrect email or password!" });
       return;
     }
-  } else {
-    res.status(500).json({ message: "Incorrect email or password!" });
-    return;
+  }else{
+    res.status(500).json({message: "user does not exists!"})
   }
 };
 

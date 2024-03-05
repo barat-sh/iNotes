@@ -1,19 +1,25 @@
 import mongoose, { Schema, Document } from "mongoose";
+import AuthModel from "./AuthModel";
 
 const NotesSchema: Schema = new mongoose.Schema(
   {
-    noteTitle: {
+    Title: {
       type: String,
       requried: true,
     },
-    noteCode: {
+    Code: {
       type: String,
     },
-    noteDescription: {
+    Description: {
       type: String,
     },
-    imageLink: {
+    Link: {
       type: String,
+    },
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: 'AuthModel',
+      required: true,
     },
   },
   {
